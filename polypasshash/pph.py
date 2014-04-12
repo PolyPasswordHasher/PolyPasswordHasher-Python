@@ -138,7 +138,7 @@ class PolyPassHash(object):
 
             self.accountdict[username].append(thisentry)
             # and exit (don't increment the share count!)
-            return
+            return thisentry
 
         for sharenumber in range(self.nextavailableshare, self.nextavailableshare + shares):
             thisentry = {}
@@ -158,6 +158,7 @@ class PolyPassHash(object):
 
         # increment the share counter.
         self.nextavailableshare += shares
+        return self.accountdict[username]
 
     def is_valid_login(self, username, password):
         if PY3:
