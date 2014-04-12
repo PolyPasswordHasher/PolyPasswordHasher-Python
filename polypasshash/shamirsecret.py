@@ -6,7 +6,7 @@ try:
 except ImportError:
     fastpolymath = None
 
-PY3 = sys.version_info.major == 3
+PY3 = sys.version_info[0] == 3
 SPEEDUP = False
 
 
