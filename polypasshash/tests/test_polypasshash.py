@@ -1,4 +1,4 @@
-import polypasshash
+from polypasshash import PolyPassHash
 
 THRESHOLD = 10
 PASSWORDFILE = 'securepasswords'
@@ -7,7 +7,7 @@ PASSWORDFILE = 'securepasswords'
 def test_1_decode():
     # require knowledge of 10 shares to decode others.   Create a blank, new
     # password file...
-    pph = polypasshash.PolyPassHash(threshold=THRESHOLD, passwordfile=None)
+    pph = PolyPassHash(threshold=THRESHOLD, passwordfile=None)
 
     # create three admins so that any two have the appropriate threshold
     pph.create_account('admin', 'correct horse', THRESHOLD / 2)
@@ -22,11 +22,11 @@ def test_1_decode():
     pph.create_account('eve', 'iamevil', 0)
 
     # try some logins and make sure we see what we expect...
-    assert(pph.is_valid_login('alice', 'kitten') is True)
-    assert(pph.is_valid_login('admin', 'correct horse') is True)
-    assert(pph.is_valid_login('alice', 'nyancat!') is False)
-    assert(pph.is_valid_login('dennis', 'menace') is True)
-    assert(pph.is_valid_login('dennis', 'password') is False)
+    assert pph.is_valid_login('alice', 'kitten')
+    assert pph.is_valid_login('admin', 'correct horse')
+    assert not pph.is_valid_login('alice', 'nyancat!')
+    assert pph.is_valid_login('dennis', 'menace')
+    assert not pph.is_valid_login('dennis', 'password')
 
     # persist the password file to disk
     pph.write_password_data(PASSWORDFILE)
@@ -35,7 +35,7 @@ def test_1_decode():
 def test_2_file():
 
     # let's load it back in
-    pph = polypasshash.PolyPassHash(threshold=THRESHOLD, passwordfile=PASSWORDFILE)
+    pph = PolyPassHash(threshold=THRESHOLD, passwordfile=PASSWORDFILE)
 
     # The password information is essentially useless alone.   You cannot know
     # if a password is valid without threshold or more other passwords!!!
@@ -55,7 +55,7 @@ def test_2_file():
     ])
 
     # now, I can do the usual operations with it...
-    assert(pph.is_valid_login('alice', 'kitten') is True)
+    assert pph.is_valid_login('alice', 'kitten')
 
     pph.create_account('moe', 'tadpole', 1)
     pph.create_account('larry', 'fish', 0)
@@ -64,7 +64,7 @@ def test_2_file():
 
     # require knowledge of 10 shares to decode others.   Create a blank, new
     # password file...
-    pph = polypasshash.PolyPassHash(threshold=THRESHOLD, passwordfile=None, partialbytes=2)
+    pph = PolyPassHash(threshold=THRESHOLD, passwordfile=None, partialbytes=2)
 
     # create three admins so that any two have the appropriate threshold
     pph.create_account('admin', 'correct horse', THRESHOLD / 2)
@@ -79,11 +79,11 @@ def test_2_file():
     pph.create_account('eve', 'iamevil', 0)
 
     # try some logins and make sure we see what we expect...
-    assert(pph.is_valid_login('alice', 'kitten') is True)
-    assert(pph.is_valid_login('admin', 'correct horse') is True)
-    assert(pph.is_valid_login('alice', 'nyancat!') is False)
-    assert(pph.is_valid_login('dennis', 'menace') is True)
-    assert(pph.is_valid_login('dennis', 'password') is False)
+    assert pph.is_valid_login('alice', 'kitten')
+    assert pph.is_valid_login('admin', 'correct horse')
+    assert not pph.is_valid_login('alice', 'nyancat!')
+    assert pph.is_valid_login('dennis', 'menace')
+    assert not pph.is_valid_login('dennis', 'password')
 
     # persist the password file to disk
     pph.write_password_data(PASSWORDFILE)
@@ -91,13 +91,13 @@ def test_2_file():
 
 def test_3_partial():
     # let's load it back in
-    pph = polypasshash.PolyPassHash(threshold=THRESHOLD, passwordfile='securepasswords', partialbytes=2)
+    pph = PolyPassHash(threshold=THRESHOLD, passwordfile='securepasswords', partialbytes=2)
 
     # The password threshold info should be useful now...
     try:
-        assert(pph.is_valid_login('alice', 'kitten') is True)
-        assert(pph.is_valid_login('admin', 'correct horse') is True)
-        assert(pph.is_valid_login('alice', 'nyancat!') is False)
+        assert pph.is_valid_login('alice', 'kitten')
+        assert pph.is_valid_login('admin', 'correct horse')
+        assert not pph.is_valid_login('alice', 'nyancat!')
     except ValueError:
         print("Partial verification but it is still locked!!!")
 
@@ -118,7 +118,7 @@ def test_3_partial():
     ])
 
     # now, I can do the usual operations with it...
-    assert(pph.is_valid_login('alice', 'kitten') is True)
+    assert pph.is_valid_login('alice', 'kitten')
 
     # including create accounts...
     pph.create_account('moe', 'tadpole', 1)
