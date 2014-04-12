@@ -1,3 +1,5 @@
+import os
+import pickle
 import hashlib
 
 # For thresholdless password support...
@@ -5,13 +7,9 @@ from Crypto.Cipher import AES
 
 from .shamirsecret import PY3
 try:
-    from . import fastshamirsecret as shamirsecret
+    from .fastshamirsecret import ShamirSecret
 except ImportError:
-    from . import shamirsecret
-
-import os
-
-import pickle
+    from .shamirsecret import ShamirSecret
 
 
 class PolyPassHash(object):
@@ -36,6 +34,9 @@ class PolyPassHash(object):
     # hashing algorithm
     hasher = hashlib.sha256
 
+    # serialization object supporting dump/load methods
+    serializer = pickle
+
     # number of bytes of data used for partial verification...
     partialbytes = 0
 
@@ -47,8 +48,6 @@ class PolyPassHash(object):
     # I don't do so in this implementation.   This duplication would allow
     # co-analysis of password hashes
     nextavailableshare = None
-
-    serializer = pickle
 
     def __init__(self, threshold, passwordfile=None, partialbytes=0):
 
@@ -65,27 +64,29 @@ class PolyPassHash(object):
             # output of SHA256, I want it to be 256 bits (or 32 bytes) long
             self.thresholdlesskey = os.urandom(32)
             # protect this key.
-            self.shamirsecretobj = shamirsecret.ShamirSecret(threshold, self.thresholdlesskey)
+            self.shamirsecretobj = ShamirSecret(threshold,
+                                                self.thresholdlesskey)
             # I've generated it now, so it is safe to use!
             self.knownsecret = True
             self.nextavailableshare = 1
             return
 
         # Okay, they have asked me to load in a password file!
-        self.shamirsecretobj = shamirsecret.ShamirSecret(threshold)
+        self.shamirsecretobj = ShamirSecret(threshold)
         self.knownsecret = False
         self.thresholdlesskey = None
 
         # just want to deserialize this data.  Should do better validation
         self.accountdict = self.serializer.load(open(passwordfile, 'rb'))
 
-        assert(type(self.accountdict) is dict)
+        assert isinstance(self.accountdict, dict)
 
         # compute which share number is the largest used...
         for username in self.accountdict:
             # look at each share
             for share in self.accountdict[username]:
-                self.nextavailableshare = max(self.nextavailableshare, share['sharenumber'])
+                self.nextavailableshare = max(self.nextavailableshare,
+                                              share['sharenumber'])
 
         # ...then use the one after when I need a new one.
         self.nextavailableshare += 1
@@ -109,12 +110,12 @@ class PolyPassHash(object):
         # moved to an internal helper.
 
         if shares > 255 or shares < 0:
-            raise ValueError("Invalid number of shares: "+str(shares)+".")
+            raise ValueError("Invalid number of shares: {0}".format(shares))
 
         # Note this is just an implementation limitation.   I could do all sorts
         # of things to get around this (like just use a bigger field).
         if shares + self.nextavailableshare > 255:
-            raise ValueError("Would exceed maximum number of shares: "+str(shares)+".")
+            raise ValueError("Would exceed maximum number of shares: {}".format(shares))
 
         # for each share, we will add the appropriate dictionary.
         self.accountdict[username] = []
@@ -132,7 +133,7 @@ class PolyPassHash(object):
             # bother?
 
             # append the partial verification data...
-            thisentry['passhash'] += saltedpasswordhash[len(saltedpasswordhash)-self.partialbytes:]
+            thisentry['passhash'] += saltedpasswordhash[len(saltedpasswordhash) - self.partialbytes:]
             thisentry['passhash'] = bytes(thisentry['passhash'])
 
             self.accountdict[username].append(thisentry)
@@ -148,9 +149,9 @@ class PolyPassHash(object):
             saltedpasswordhash = self.hasher(thisentry['salt'] + password).digest()
             # XOR the two and keep this.   This effectively hides the hash unless
             # threshold hashes can be simultaneously decoded
-            thisentry['passhash'] = _do_bytearray_XOR(saltedpasswordhash, shamirsecretdata)
+            thisentry['passhash'] = do_bytearray_xor(saltedpasswordhash, shamirsecretdata)
             # append the partial verification data...
-            thisentry['passhash'] += saltedpasswordhash[len(saltedpasswordhash)-self.partialbytes:]
+            thisentry['passhash'] += saltedpasswordhash[len(saltedpasswordhash) - self.partialbytes:]
             thisentry['passhash'] = bytes(thisentry['passhash'])
 
             self.accountdict[username].append(thisentry)
@@ -179,24 +180,23 @@ class PolyPassHash(object):
 
             # If not unlocked, partial verification needs to be done here!
             if not self.knownsecret:
-                if saltedpasswordhash[len(saltedpasswordhash) - self.partialbytes:] == entry['passhash'][len(entry['passhash']) - self.partialbytes:]:
-                    return True
-                else:
-                    return False
+                saltedcheck = saltedpasswordhash[len(saltedpasswordhash) - self.partialbytes:]
+                entrycheck = entry['passhash'][len(entry['passhash']) - self.partialbytes:]
+                return saltedcheck == entrycheck
 
             # XOR to remove the salted hash from the password
-            sharedata = _do_bytearray_XOR(saltedpasswordhash, entry['passhash'][:len(entry['passhash'])-self.partialbytes])
+            sharedata = do_bytearray_xor(saltedpasswordhash,
+                                         entry['passhash'][:len(entry['passhash']) - self.partialbytes])
 
             # If a thresholdless account...
             if entry['sharenumber'] == 0:
                 # return true if the password encrypts the same way...
-                if AES.new(self.thresholdlesskey).encrypt(saltedpasswordhash) == entry['passhash'][:len(entry['passhash'])-self.partialbytes]:
-                    return True
-                # or false otherwise
-                return False
+                cryptcheck = AES.new(self.thresholdlesskey).encrypt(saltedpasswordhash)
+                entrycheck = entry['passhash'][:len(entry['passhash']) - self.partialbytes]
+                return cryptcheck == entrycheck
 
             # now we should have a shamir share (if all is well.)
-            share = (entry['sharenumber'], sharedata)
+            share = entry['sharenumber'], sharedata
 
             # If a normal share, return T/F depending on if this share is valid.
             return self.shamirsecretobj.is_valid_share(share)
@@ -207,8 +207,8 @@ class PolyPassHash(object):
             raise ValueError("Would write undecodable password file.   Must have more shares before writing.")
 
         # Need more error checking in a real implementation
-        with open(passwordfile, 'wb') as f:
-            self.serializer.dump(self.accountdict, f)
+        with open(passwordfile, 'wb') as outfile:
+            self.serializer.dump(self.accountdict, outfile)
 
     def unlock_password_data(self, logindata):
         """Pass this a list of username, password tuples like: [('admin',
@@ -226,7 +226,7 @@ class PolyPassHash(object):
             if PY3:
                 password = bytes(password, encoding='utf8')
             if username not in self.accountdict:
-                raise ValueError("Unknown user '"+username+"'")
+                raise ValueError("Unknown user '{0}'".format(username))
 
             for entry in self.accountdict[username]:
 
@@ -234,8 +234,9 @@ class PolyPassHash(object):
                 if entry['sharenumber'] == 0:
                     continue
 
-                thissaltedpasswordhash = self.hasher(entry['salt']+password).digest()
-                thisshare = (entry['sharenumber'], _do_bytearray_XOR(thissaltedpasswordhash, entry['passhash'][:len(entry['passhash']) - self.partialbytes]))
+                thissaltedpasswordhash = self.hasher(entry['salt'] + password).digest()
+                thisshare = (entry['sharenumber'], do_bytearray_xor(thissaltedpasswordhash,
+                                                                    entry['passhash'][:len(entry['passhash']) - self.partialbytes]))
 
                 sharelist.append(thisshare)
 
@@ -248,14 +249,14 @@ class PolyPassHash(object):
 
 
 #### Private helper...
-def _do_bytearray_XOR(a, b):
+def do_bytearray_xor(a, b):
     a = bytearray(a)
     b = bytearray(b)
 
     # should always be true in our case...
     if len(a) != len(b):
         print((len(a), len(b), a, b))
-    assert(len(a) == len(b))
+    assert len(a) == len(b)
     result = bytearray()
 
     for pos in range(len(a)):
