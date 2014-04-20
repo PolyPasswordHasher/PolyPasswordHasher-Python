@@ -8,7 +8,7 @@ def test_math():
 
 
 def test_recovery():
-    s = ShamirSecret(2, 'hello')
+    s = ShamirSecret(2, b'hello')
     a = s.compute_share(1)
     b = s.compute_share(2)
     c = s.compute_share(3)
@@ -40,7 +40,7 @@ def test_basic():
     u = ShamirSecret(2)
     u.recover_secretdata(shares)
 
-    assert u.secretdata == 'h'
+    assert u.secretdata == b'h'
 
 
 def test_complex():
@@ -62,13 +62,13 @@ def test_complex():
     u = ShamirSecret(2)
     u.recover_secretdata(shares)
 
-    assert u.secretdata == 'h'
+    assert u.secretdata == b'h'
 
 
 def test_intro():
 
     # create a new object with some secret...
-    mysecret = ShamirSecret(2, 'my shared secret')
+    mysecret = ShamirSecret(2, b'my shared secret')
     # get shares out of it...
 
     a = mysecret.compute_share(4)

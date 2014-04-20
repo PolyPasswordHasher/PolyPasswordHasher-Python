@@ -65,6 +65,7 @@ class PolyPassHash(object):
             # since I'll be XORing by the
             # output of SHA256, I want it to be 256 bits (or 32 bytes) long
             self.thresholdlesskey = os.urandom(32)
+
             # protect this key.
             self.shamirsecretobj = ShamirSecret(threshold,
                                                 self.thresholdlesskey)
@@ -154,7 +155,6 @@ class PolyPassHash(object):
             # append the partial verification data...
             thisentry['passhash'] += saltedpasswordhash[len(saltedpasswordhash) - self.partialbytes:]
             thisentry['passhash'] = bytes(thisentry['passhash'])
-
             self.accountdict[username].append(thisentry)
 
         # increment the share counter.
@@ -177,7 +177,6 @@ class PolyPassHash(object):
         # they can access in the overall system), let's be thorough.
 
         for entry in self.accountdict[username]:
-
             saltedpasswordhash = self.hasher(entry['salt'] + password).digest()
 
             # If not unlocked, partial verification needs to be done here!
@@ -237,15 +236,17 @@ class PolyPassHash(object):
                     continue
 
                 thissaltedpasswordhash = self.hasher(entry['salt'] + password).digest()
-                thisshare = (entry['sharenumber'], do_bytearray_xor(thissaltedpasswordhash,
-                                                                    entry['passhash'][:len(entry['passhash']) - self.partialbytes]))
-
+                thisshare = (entry['sharenumber'],
+                    do_bytearray_xor(thissaltedpasswordhash,
+                      entry['passhash'][:len(entry['passhash']) -
+                        self.partialbytes]))
                 sharelist.append(thisshare)
 
         # This will raise a ValueError if a share is incorrect or there are other
         # issues (like not enough shares).
         self.shamirsecretobj.recover_secretdata(sharelist)
         self.thresholdlesskey = self.shamirsecretobj.secretdata
+
         # it worked!
         self.knownsecret = True
 

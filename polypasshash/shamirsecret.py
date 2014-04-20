@@ -29,14 +29,14 @@ class ShamirSecret(object):
         # if we're given data, let's compute the random coefficients.   I do this
         # here so I can later iteratively compute the shares
         if secretdata is not None:
-
             self._coefficients = []
             for secretbyte in secretdata:
                 # this is the polynomial.   The first byte is the secretdata.
                 # The next threshold-1 are (crypto) random coefficients
                 # I'm applying Shamir's secret sharing separately on each byte.
                 if PY3:
-                    secretbyte = bytes(secretbyte, encoding='utf8')
+                    secretbyte = secretbyte.to_bytes(1,"little") 
+                    #secretbyte = bytes(secretbyte, encoding='unicode')
                 thesecoefficients = bytearray(secretbyte + os.urandom(threshold - 1))
 
                 self._coefficients.append(thesecoefficients)
@@ -124,7 +124,7 @@ class ShamirSecret(object):
             xs.append(share[0])
 
         mycoefficients = []
-        mysecretdata = ''
+        mysecretdata = b''
 
         # now walk through each byte of the secret and do lagrange interpolation
         # to compute the coefficient...
@@ -145,9 +145,17 @@ class ShamirSecret(object):
 
             # track this byte...
             mycoefficients.append(bytearray(resulting_poly))
+            
+            # python 2 apparently had str=bytes, so using strings would make
+            # sense, this is not the case with python 3, and we need to do 
+            # take special considerations with data types.
+            if PY3:
+              secret_byte = resulting_poly[0].to_bytes(1,"little")
+            else:
+              secret_byte = chr(resulting_poly[0])
 
-            mysecretdata += chr(resulting_poly[0])
-
+            mysecretdata += secret_byte 
+            
         # they check out!   Assign to the real ones!
         self._coefficients = mycoefficients
 
