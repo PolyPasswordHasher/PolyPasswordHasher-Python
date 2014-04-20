@@ -57,6 +57,8 @@ class PolyPassHash(object):
 
         self.partialbytes = partialbytes
 
+        self.nextavailableshare = 1
+
         # creating a new password file
         if passwordfile is None:
             # generate a 256 bit key for AES.   I need 256 bits anyways
@@ -68,7 +70,6 @@ class PolyPassHash(object):
                                                 self.thresholdlesskey)
             # I've generated it now, so it is safe to use!
             self.knownsecret = True
-            self.nextavailableshare = 1
             return
 
         # Okay, they have asked me to load in a password file!
