@@ -60,12 +60,24 @@ def run_setup(with_binary):
         name="PolyPassHash",
         version="0.1.0-alpha",
         packages=['polypasshash', 'polypasshash.tests'],
+        url='https://github.com/PolyPassHash/PolyPassHash-Python',
         description="A Password hash storage scheme that prevents an attacker from cracking passwords individually and efficiently.",
+        long_description=open('README.rst').read(),
         author="Justin Cappos",
         author_email="jcappos@poly.edu",
         install_requires=[
             "pycrypto"
         ],
+        classifiers=['Development Status :: 3 - Alpha',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Science/Research',
+                     'Intended Audience :: System Administrators',
+                     'License :: OSI Approved :: MIT License',
+                     'Operating System :: OS Independent',
+                     'Programming Language :: Python :: 2',
+                     'Programming Language :: Python :: 3',
+                     'Topic :: Security :: Cryptography',
+                     'Topic :: Utilities'],
         **kw
     )
 
