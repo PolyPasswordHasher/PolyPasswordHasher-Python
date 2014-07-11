@@ -1,4 +1,1 @@
-include *.py
-include *.txt
-include *.rst
-include MANIFEST.in
+include *.py *.txt *.rst LICENSE MANIFEST.in

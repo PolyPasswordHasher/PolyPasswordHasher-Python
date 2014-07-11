@@ -12,7 +12,7 @@ except ImportError:
     from .shamirsecret import ShamirSecret
 
 
-class PolyPassHash(object):
+class PolyPasswordHasher(object):
     """
     This is a PolyHash object that has special routines for passwords
     """
@@ -47,7 +47,7 @@ class PolyPassHash(object):
     # number of used shares.   While I could duplicate shares for normal users,
     # I don't do so in this implementation.   This duplication would allow
     # co-analysis of password hashes
-    nextavailableshare = None
+    nextavailableshare = 1
 
     def __init__(self, threshold, passwordfile=None, partialbytes=0):
 
@@ -56,8 +56,6 @@ class PolyPassHash(object):
         self.accountdict = {}
 
         self.partialbytes = partialbytes
-
-        self.nextavailableshare = 1
 
         # creating a new password file
         if passwordfile is None:
@@ -237,9 +235,9 @@ class PolyPassHash(object):
 
                 thissaltedpasswordhash = self.hasher(entry['salt'] + password).digest()
                 thisshare = (entry['sharenumber'],
-                    do_bytearray_xor(thissaltedpasswordhash,
-                      entry['passhash'][:len(entry['passhash']) -
-                        self.partialbytes]))
+                             do_bytearray_xor(thissaltedpasswordhash,
+                                              entry['passhash'][:len(entry['passhash'])
+                                                                - self.partialbytes]))
                 sharelist.append(thisshare)
 
         # This will raise a ValueError if a share is incorrect or there are other

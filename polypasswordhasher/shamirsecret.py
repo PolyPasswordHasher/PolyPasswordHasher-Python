@@ -13,7 +13,7 @@ SPEEDUP = False
 class ShamirSecret(object):
     """
     This performs Shamir Secret Sharing operations in an incremental way
-    that is useful for PolyPassHash.  It allows checking membership, genering
+    that is useful for PolyPasswordHasher.  It allows checking membership, genering
     shares one at a time, etc.
 
     Creates an object. One must provide the threshold. If you want to have it create the coefficients, etc.
@@ -35,8 +35,7 @@ class ShamirSecret(object):
                 # The next threshold-1 are (crypto) random coefficients
                 # I'm applying Shamir's secret sharing separately on each byte.
                 if PY3:
-                    secretbyte = secretbyte.to_bytes(1,"little") 
-                    #secretbyte = bytes(secretbyte, encoding='unicode')
+                    secretbyte = secretbyte.to_bytes(1, "little")
                 thesecoefficients = bytearray(secretbyte + os.urandom(threshold - 1))
 
                 self._coefficients.append(thesecoefficients)
@@ -61,10 +60,8 @@ class ShamirSecret(object):
         if len(self._coefficients) != len(share[1]):
             raise ValueError("Must initialize coefficients before checking is_valid_share")
 
-        x, _ = share
-
         # let's just compute the right value
-        return self.compute_share(x) == share
+        return self.compute_share(share[0]) == share
 
     def compute_share(self, x):
         """
@@ -145,17 +142,17 @@ class ShamirSecret(object):
 
             # track this byte...
             mycoefficients.append(bytearray(resulting_poly))
-            
+
             # python 2 apparently had str=bytes, so using strings would make
-            # sense, this is not the case with python 3, and we need to do 
+            # sense, this is not the case with python 3, and we need to do
             # take special considerations with data types.
             if PY3:
-              secret_byte = resulting_poly[0].to_bytes(1,"little")
+                secret_byte = resulting_poly[0].to_bytes(1, "little")
             else:
-              secret_byte = chr(resulting_poly[0])
+                secret_byte = chr(resulting_poly[0])
 
-            mysecretdata += secret_byte 
-            
+            mysecretdata += secret_byte
+
         # they check out!   Assign to the real ones!
         self._coefficients = mycoefficients
 

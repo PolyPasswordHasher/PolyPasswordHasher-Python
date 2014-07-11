@@ -1,4 +1,4 @@
-from polypasshash.shamirsecret import ShamirSecret, _full_lagrange
+from polypasswordhasher.shamirsecret import ShamirSecret, _full_lagrange
 
 
 def test_math():

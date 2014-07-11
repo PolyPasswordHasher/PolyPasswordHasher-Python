@@ -51,21 +51,33 @@ def run_setup(with_binary):
     if 0: #with_binary:
         kw.update(
             ext_modules=[Extension("fastpolymath_c",
-                                   sources=["polypasshash/fastpolymath.c"],
-                                   include_dirs=['polypasshash'])],
+                                   sources=["polypasswordhasher/fastpolymath.c"],
+                                   include_dirs=['polypasswordhasher'])],
             cmdclass=dict(cmdclass, build_ext=ve_build_ext),
         )
 
     setup(
-        name="PolyPassHash",
+        name="PolyPasswordHasher",
         version="0.1.0-alpha",
-        packages=['polypasshash', 'polypasshash.tests'],
+        packages=['polypasswordhasher', 'polypasswordhasher.tests'],
+        url='https://github.com/PolyPasswordHasher/PolyPasswordHasher-Python',
         description="A Password hash storage scheme that prevents an attacker from cracking passwords individually and efficiently.",
+        long_description=open('README.rst').read(),
         author="Justin Cappos",
         author_email="jcappos@poly.edu",
         install_requires=[
             "pycrypto"
         ],
+        classifiers=['Development Status :: 3 - Alpha',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Science/Research',
+                     'Intended Audience :: System Administrators',
+                     'License :: OSI Approved :: MIT License',
+                     'Operating System :: OS Independent',
+                     'Programming Language :: Python :: 2',
+                     'Programming Language :: Python :: 3',
+                     'Topic :: Security :: Cryptography',
+                     'Topic :: Utilities'],
         **kw
     )
 

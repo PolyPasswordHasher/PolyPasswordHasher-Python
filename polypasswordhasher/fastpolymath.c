@@ -6,7 +6,7 @@
   Apr 1st, 2013
 
 <Description>
-  A wrapper for fast C operations for polynomial math for PolyPassHash.
+  A wrapper for fast C operations for polynomial math for PolyPasswordHasher.
   Specifically, I have two external interfaces: computing f(x) and
   doing full Lagrange interpolation.   I do this for polynomials in GF256
   using x^8 + x^4 + x^3 + x + 1 as multiplication and XOR for addition.   
