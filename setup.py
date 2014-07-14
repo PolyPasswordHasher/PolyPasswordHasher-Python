@@ -76,6 +76,7 @@ def run_setup(with_binary):
                      'Operating System :: OS Independent',
                      'Programming Language :: Python :: 2',
                      'Programming Language :: Python :: 3',
+                     'Programming Language :: Python :: Implementation :: PyPy',
                      'Topic :: Security :: Cryptography',
                      'Topic :: Utilities'],
         **kw
