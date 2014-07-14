@@ -63,8 +63,8 @@ def run_setup(with_binary):
         url='https://github.com/PolyPasswordHasher/PolyPasswordHasher-Python',
         description="A Password hash storage scheme that prevents an attacker from cracking passwords individually and efficiently.",
         long_description=open('README.rst').read(),
-        author="Justin Cappos",
-        author_email="jcappos@poly.edu",
+        author="PolyPasswordHasher Devs",
+        author_email="polypasswordhasher-dev@googlegroups.com",
         install_requires=[
             "pycrypto"
         ],
